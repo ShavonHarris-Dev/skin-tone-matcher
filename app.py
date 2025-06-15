@@ -106,11 +106,68 @@ if st.session_state['uploaded_images']:
             matching_colors = get_matching_colors(most_common)
             st.write("Here are some colors that pair well with your skin tone:")
             cols = st.columns(len(matching_colors))
+            # Add session state for search
+            if 'search_states' not in st.session_state:
+                st.session_state['search_states'] = {}
+            # Helper: map hex to color name for palette colors
+            COLOR_NAME_MAP = {
+                '#ffa07a': 'Light Salmon',
+                '#ffdab9': 'Peach Puff',
+                '#ffffe0': 'Light Yellow',
+                '#4682b4': 'Steel Blue',
+                '#ba55d3': 'Medium Orchid',
+                '#ffd700': 'Gold',
+                '#ffefd5': 'Papaya Whip',
+                '#cd853f': 'Peru',
+                '#483d8b': 'Dark Slate Blue',
+                '#2e8b57': 'Sea Green',
+                '#ffdead': 'Navajo White',
+                '#ffb6c1': 'Light Pink',
+                '#ffe4b5': 'Moccasin',
+                '#3cb371': 'Medium Sea Green',
+                '#d2b48c': 'Tan',
+                '#bdb76b': 'Dark Khaki',
+                '#b0e0e6': 'Powder Blue',
+                '#556b2f': 'Dark Olive Green',
+                '#f0e68c': 'Khaki',
+                '#b0c4de': 'Light Steel Blue',
+                '#98fb98': 'Pale Green',
+                '#ffe4e1': 'Misty Rose',
+                '#fffacd': 'Lemon Chiffon',
+                '#e0ffff': 'Light Cyan',
+                '#dda0dd': 'Plum',
+                '#ffffe0': 'Light Yellow',
+                '#ffebcd': 'Blanched Almond',
+                '#faebd7': 'Antique White',
+                '#fffaf0': 'Floral White',
+                '#fff5ee': 'Seashell',
+                '#fff0f5': 'Lavender Blush',
+                '#ffe4c4': 'Bisque',
+                '#ffebcd': 'Blanched Almond',
+                '#ffe4b5': 'Moccasin',
+                '#ffefd5': 'Papaya Whip',
+                '#ffdab9': 'Peach Puff',
+            }
+            def hex_to_name(hex_color):
+                return COLOR_NAME_MAP.get(hex_color.lower(), hex_color)
             for cidx, color in enumerate(matching_colors):
                 hex_color = '#%02x%02x%02x' % color
+                color_name = hex_to_name(hex_color)
+                key = f'search_{idx}_{cidx}'
                 with cols[cidx]:
+                    if st.button(hex_color, key=key):
+                        st.session_state['search_states'][key] = True
                     st.markdown(f'<div style="width:60px;height:60px;background:{hex_color};border-radius:8px;"></div>', unsafe_allow_html=True)
-                    st.write(hex_color)
+                    st.write(color_name)
+                    # If swatch clicked, show search bar
+                    if st.session_state['search_states'].get(key, False):
+                        clothing = st.text_input(f"Search for {color_name} ...", key=f'input_{key}', placeholder="e.g. shoes, dress, shirt")
+                        if clothing:
+                            # Google Images search URL using color name
+                            search_url = f"https://www.google.com/search?tbm=isch&q={color_name.replace(' ', '+')}+{clothing}"
+                            st.markdown(f"[See {color_name} {clothing} on Google Images]({search_url})", unsafe_allow_html=True)
+                        if st.button("Close", key=f'close_{key}'):
+                            st.session_state['search_states'][key] = False
         else:
             st.write("Could not detect a dominant skin tone. Try another photo.")
 
